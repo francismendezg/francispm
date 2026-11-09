@@ -1422,46 +1422,6 @@ em.serif{font-family:var(--serif);font-style:italic}
   items.forEach(i=>{ i.addEventListener('mouseenter',()=>hot(i.dataset.pin,true)); i.addEventListener('mouseleave',()=>hot(i.dataset.pin,false)); });
   pins.forEach(p=>{ p.addEventListener('mouseenter',()=>hot(p.dataset.pin,true)); p.addEventListener('mouseleave',()=>hot(p.dataset.pin,false)); p.addEventListener('click',()=>hot(p.dataset.pin,true)); });
 
-  /* ---------- Photo slots ---------- */
-  const store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v);return true}catch(e){return false}},del(k){try{localStorage.removeItem(k)}catch(e){}}};
-  const camSVG='<svg class="ph-ill" viewBox="0 0 120 90" aria-hidden="true"><use href="#i-camera"/></svg>';
-  $$('.slot').forEach(slot=>{
-    const img=$('.slot__img',slot), key='fm-photo-'+slot.dataset.slot;
-    const ph=document.createElement('div'); ph.className='slot__ph';
-    const isScene=slot.classList.contains('slot--scene');
-    ph.innerHTML=(isScene?'':camSVG)+'<span class="ph-label">'+(slot.dataset.label||'[INSERTAR FOTOGRAFÍA AQUÍ]')+'</span>'+(slot.dataset.hint?'<span class="ph-hint">'+slot.dataset.hint+'</span>':'')+(isScene?'':'<span class="ph-hint" style="font-size:.95rem;opacity:.75">clic para probar tu foto</span>');
-    slot.insertBefore(ph,img.nextSibling);
-    const input=document.createElement('input'); input.type='file'; input.accept='image/*';
-    const rm=document.createElement('button'); rm.type='button'; rm.className='slot__remove'; rm.textContent='Quitar foto ×';
-    slot.append(input,rm);
-    slot.setAttribute('tabindex','0'); slot.setAttribute('role','button'); slot.setAttribute('aria-label',(slot.dataset.label||'Foto')+' — pulsa para probar una imagen');
-    const original=img.getAttribute('src');
-    if(original){
-      slot.classList.add('has-img');
-      const fail=()=>{ if(!slot.classList.contains('user-img')) slot.classList.remove('has-img'); };
-      img.addEventListener('error',fail);
-      if(img.complete && img.naturalWidth===0) fail();
-    }
-    const saved=store.get(key);
-    if(saved){ img.src=saved; slot.classList.add('has-img','user-img'); }
-    slot.addEventListener('click',e=>{ if(e.target===rm) return; input.click(); });
-    slot.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); input.click(); }});
-    rm.addEventListener('click',e=>{ e.stopPropagation(); store.del(key); slot.classList.remove('user-img');
-      if(original){ img.src=original; slot.classList.add('has-img'); } else { img.removeAttribute('src'); slot.classList.remove('has-img'); } });
-    input.addEventListener('change',()=>{
-      const f=input.files&&input.files[0]; if(!f) return;
-      const r=new FileReader();
-      r.onload=()=>{ const im=new Image(); im.onload=()=>{
-        const max=1600, s=Math.min(1,max/Math.max(im.width,im.height));
-        const c=document.createElement('canvas'); c.width=Math.round(im.width*s); c.height=Math.round(im.height*s);
-        c.getContext('2d').drawImage(im,0,0,c.width,c.height);
-        let url; try{ url=c.toDataURL('image/jpeg',.85);}catch(e){ url=r.result; }
-        img.src=url; slot.classList.add('has-img','user-img'); store.set(key,url);
-      }; im.src=r.result; };
-      r.readAsDataURL(f); input.value='';
-    });
-  });
-
   /* ---------- Copy email ---------- */
   const cb=$('#copyEmail');
   if(cb) cb.addEventListener('click',async()=>{
